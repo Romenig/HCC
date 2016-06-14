@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="fill_parent"
+    android:background="#452402">
+
+        <com.mklimek.frameviedoview.FrameVideoView
+            android:id="@+id/frame_video_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_gravity="center"
+            android:background="#452402" />
+        <!-- children go here -->
+
+</FrameLayout>

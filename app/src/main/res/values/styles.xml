@@ -1,0 +1,14 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="android:Theme.Black.NoTitleBar.Fullscreen">
+        <!-- Customize your theme here. -->
+        <item name="android:colorBackground">#452402</item>
+        <item name="colorPrimary">#452402</item>
+        <item name="colorPrimaryDark">#452402</item>
+        <item name="colorAccent">#452402</item>
+        <item name="android:startColor">#452402</item>
+        <item name="android:endColor">#452402</item>
+    </style>
+
+</resources>
