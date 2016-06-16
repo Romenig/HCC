@@ -3,4 +3,5 @@
     <string name="app_name">Humor com Ciência</string>
     <string name="slf4android_email_subject">Error in:&#160;</string>
     <string name="slf4android_email_extra_text">Please provide a description of an error:\n</string>
+    <string name="gmc_defaultSenderId">1001034874236</string>
 </resources>

@@ -1,13 +1,19 @@
 package com.humorcomciencia.hcc;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -15,17 +21,92 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
+import org.json.JSONObject;
+
+import java.net.URLEncoder;
+import java.util.Iterator;
 import java.util.List;
 
 public class HCC extends Activity {
 
     private boolean firstLoadAccomplished = false;
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
     private ProgressBar progress;
-    private  WebView browser;
+    private WebView browser;
+
+    public class SendPostRequest extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            return null;
+        }
+
+        protected void onPreExecute() {
+
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
+        }
+
+        public String getPostDataString(JSONObject params) throws Exception {
+
+            StringBuilder result = new StringBuilder();
+            boolean first = true;
+
+            Iterator<String> itr = params.keys();
+
+            while(itr.hasNext()){
+
+                String key= itr.next();
+                Object value = params.get(key);
+
+                if (first)
+                    first = false;
+                else
+                    result.append("&");
+
+                result.append(URLEncoder.encode(key, "UTF-8"));
+                result.append("=");
+                result.append(URLEncoder.encode(value.toString(), "UTF-8"));
+
+            }
+            return result.toString();
+        }
+    }
+
+
+    /*
+    BAGUNÇA
+    */
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hcc);
+
+        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if(intent.getAction().equals(GCMRegistrationIntentService.REGISTRATION_SUCCESS)){
+                    String token = intent.getStringExtra("token");
+
+
+
+                }else if(intent.getAction().equals(GCMRegistrationIntentService.REGISTRATION_ERROR)){
+
+                }else{
+
+                }
+            }
+        };
+
         browser = (WebView) findViewById(R.id.webView);
         browser.setBackgroundColor(0x00000000);
         WebSettings webSettings = browser.getSettings();
@@ -35,6 +116,37 @@ public class HCC extends Activity {
         browser.loadUrl("http://www.humorcomciencia.com");
         progress = (ProgressBar) findViewById(R.id.progressBar);
         progress.setMax(100);
+
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
+        if(ConnectionResult.SUCCESS != resultCode){
+            //Verificar o tipo de erro:
+            if(GooglePlayServicesUtil.isUserRecoverableError(resultCode)){
+                GooglePlayServicesUtil.showErrorNotification(resultCode, getApplicationContext());
+            }else{
+
+            }
+        }else{
+            Intent intent = new Intent(this, GCMRegistrationIntentService.class);
+            startService(intent);
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.w("HCC", "onResume");
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(GCMRegistrationIntentService.REGISTRATION_SUCCESS));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(GCMRegistrationIntentService.REGISTRATION_ERROR));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.w("HCC", "onPause");
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
     }
 
     private class MyChrome extends WebChromeClient {
