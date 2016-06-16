@@ -1,7 +1,12 @@
 package com.humorcomciencia.hcc;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -9,6 +14,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
+
+import java.util.List;
 
 public class HCC extends Activity {
 
@@ -41,8 +48,41 @@ public class HCC extends Activity {
     private class MyBrowser extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            view.loadUrl(url);
+            if( url.contains("instagram.com")) {
+                /*Uri uri = Uri.parse(url);
+                Intent likeIng = new Intent(Intent.ACTION_VIEW, uri);
+                likeIng.setPackage("com.instagram.android");
+
+                try {
+                    startActivity(likeIng);
+                } catch (ActivityNotFoundException e) {
+                    startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("http://instagram.com/xxx")));
+                }*/
+                Intent insta_intent = getPackageManager().getLaunchIntentForPackage("com.instagram.android");
+                insta_intent.setComponent(new ComponentName("com.instagram.android", "com.instagram.android.activity.UrlHandlerActivity"));
+                if(url.contains("humor"))
+                    insta_intent.setData(Uri.parse("https://www.instagram.com/_u/humorcomciencia/"));
+                else
+                    insta_intent.setData(Uri.parse(url));
+                startActivity(insta_intent);
+                return true;
+            }else if( url.startsWith("http:") || url.startsWith("https:")  ) {
+                view.loadUrl(url);
+                return true;
+            }
+            // Otherwise allow the OS to handle things like tel, mailto, etc.
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity( intent );
             return true;
+        }
+
+
+
+        private boolean isIntentAvailable(Intent intent) {
+            final PackageManager packageManager = getPackageManager();
+            List<ResolveInfo> list = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            return list.size() > 0;
         }
 
         @Override

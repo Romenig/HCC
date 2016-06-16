@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "1001034874236",
+    "project_id": "humor-com-ciencia"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1001034874236:android:549a9e8a2d43a382",
+        "android_client_info": {
+          "package_name": "com.humorcomciencia.hcc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGHbuR5GTQ4boWPQOhigwDhv_SvfBOd9w"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
