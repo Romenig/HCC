@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -24,10 +23,15 @@ import android.widget.ProgressBar;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URLEncoder;
-import java.util.Iterator;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 public class HCC extends Activity {
@@ -36,55 +40,6 @@ public class HCC extends Activity {
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private ProgressBar progress;
     private WebView browser;
-
-    public class SendPostRequest extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-            return null;
-        }
-
-        protected void onPreExecute() {
-
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-
-        }
-
-        public String getPostDataString(JSONObject params) throws Exception {
-
-            StringBuilder result = new StringBuilder();
-            boolean first = true;
-
-            Iterator<String> itr = params.keys();
-
-            while(itr.hasNext()){
-
-                String key= itr.next();
-                Object value = params.get(key);
-
-                if (first)
-                    first = false;
-                else
-                    result.append("&");
-
-                result.append(URLEncoder.encode(key, "UTF-8"));
-                result.append("=");
-                result.append(URLEncoder.encode(value.toString(), "UTF-8"));
-
-            }
-            return result.toString();
-        }
-    }
-
-
-    /*
-    BAGUNÇA
-    */
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,9 +51,50 @@ public class HCC extends Activity {
             public void onReceive(Context context, Intent intent) {
                 if(intent.getAction().equals(GCMRegistrationIntentService.REGISTRATION_SUCCESS)){
                     String token = intent.getStringExtra("token");
+                    OutputStream os = null;
+                    HttpURLConnection conn = null;
+                    try {
+                        URL url = new URL("http://www.humorcomciencia.com/pnfw/register/");
 
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("token", token);
+                        jsonObject.put("os", "Android");
+                        String message = jsonObject.toString();
 
+                        conn = (HttpURLConnection) url.openConnection();
+                        conn.setReadTimeout( 10000 /*milliseconds*/ );
+                        conn.setConnectTimeout( 15000 /* milliseconds */ );
+                        conn.setRequestMethod("POST");
+                        conn.setDoInput(true);
+                        conn.setFixedLengthStreamingMode(message.getBytes().length);
 
+                        //make some HTTP header nicety
+                        conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
+                        conn.setRequestProperty("X-Requested-With", "XMLHttpRequest");
+
+                        //open
+                        conn.connect();
+
+                        //setup send
+                        os = new BufferedOutputStream(conn.getOutputStream());
+                        os.write(message.getBytes());
+                        //clean up
+                        os.flush();
+
+                    } catch(MalformedURLException e){
+
+                    } catch(IOException e) {
+
+                    } catch(JSONException e){
+
+                    } finally {
+                        try {
+                            os.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        conn.disconnect();
+                    }
                 }else if(intent.getAction().equals(GCMRegistrationIntentService.REGISTRATION_ERROR)){
 
                 }else{
@@ -119,7 +115,6 @@ public class HCC extends Activity {
 
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
         if(ConnectionResult.SUCCESS != resultCode){
-            //Verificar o tipo de erro:
             if(GooglePlayServicesUtil.isUserRecoverableError(resultCode)){
                 GooglePlayServicesUtil.showErrorNotification(resultCode, getApplicationContext());
             }else{
@@ -130,6 +125,15 @@ public class HCC extends Activity {
             startService(intent);
         }
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(browser.canGoBack()){
+            browser.goBack();
+        }else{
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -161,16 +165,6 @@ public class HCC extends Activity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if( url.contains("instagram.com")) {
-                /*Uri uri = Uri.parse(url);
-                Intent likeIng = new Intent(Intent.ACTION_VIEW, uri);
-                likeIng.setPackage("com.instagram.android");
-
-                try {
-                    startActivity(likeIng);
-                } catch (ActivityNotFoundException e) {
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse("http://instagram.com/xxx")));
-                }*/
                 Intent insta_intent = getPackageManager().getLaunchIntentForPackage("com.instagram.android");
                 insta_intent.setComponent(new ComponentName("com.instagram.android", "com.instagram.android.activity.UrlHandlerActivity"));
                 if(url.contains("humor"))
@@ -221,4 +215,8 @@ public class HCC extends Activity {
     public void setValue(int progress) {
         this.progress.setProgress(progress);
     }
+
+
+
+
 }

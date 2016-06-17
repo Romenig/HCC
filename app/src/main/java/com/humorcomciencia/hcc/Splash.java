@@ -1,8 +1,11 @@
 package com.humorcomciencia.hcc;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -33,9 +36,24 @@ public class Splash extends Activity{
                     public void onCompletion(MediaPlayer mp) {
                         mp.stop();
                         finish();
-                        Intent i = new Intent(Splash.this, HCC.class);
-                        overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
-                        startActivity(i);
+
+
+                        ConnectivityManager cm =
+                                (ConnectivityManager)getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+                        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                        boolean isConnected = activeNetwork != null &&
+                                activeNetwork.isConnectedOrConnecting();
+
+                        if(isConnected){
+                            Intent i = new Intent(Splash.this, HCC.class);
+                            overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
+                            startActivity(i);
+                        }else{
+                            Intent i = new Intent(Splash.this, NoInternet.class);
+                            overridePendingTransition(R.anim.abc_fade_in, R.anim.abc_fade_out);
+                            startActivity(i);
+                        }
                     }
                 });
 
@@ -45,6 +63,9 @@ public class Splash extends Activity{
 
             }
         });
+
+
+
 
     }
 }
